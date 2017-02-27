@@ -90,9 +90,11 @@ EOF
 }
 
 case $1 in
+
     setup)
         setup
         ;;
+
     update)
         source source.me.sh
         go get -u $EXAMPLEURL/bin/example
@@ -100,12 +102,19 @@ case $1 in
         glide up
         go install -ldflags "-X $EXAMPLEURL/cli.Version=$VERSION" $EXAMPLEURL/bin/example
         ;;
+
     install)
         source source.me.sh
         go install -ldflags "-X $EXAMPLEURL/cli.Version=$VERSION" $EXAMPLEURL/bin/example
         ;;
+    test)
+        source source.me.sh
+        cd $GOPATH/src/$EXAMPLEURL
+        go test -cover $(glide novendor)
+        ;;
+        
     *)
-        echo "Usage: up {setup|update|install}"
+        echo "Usage: up {setup|update|install|test}"
         echo ""
         echo "  setup: Create an empty directory beside this script, cd into the"
         echo "    directory and execute '../up setup'. This will install Go, all"
@@ -115,6 +124,8 @@ case $1 in
         echo "    and reinstall Example with the latest code."
         echo ""
         echo "  install: This will reinstall the code with no changes."
+        echo ""
+        echo "  test: Performs all unit tests on the code."
         echo ""
         echo ""
         echo "NOTE: All steps install into GOBIN."

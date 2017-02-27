@@ -12,7 +12,19 @@ On an Ubuntu 16.04 machine, create an empty directory and copy the "up" file bes
 ```
 ../up setup
 ```
-If the automatic script isn't desired, feel free to review the script and perform any necessary steps manually.
+If the automatic script isn't desired, feel free to review the script and perform any necessary steps manually. Additionally, the 'up' script can:
+```
+up setup     # Installs everything from scratch in an empty directory.
+up update    # Updates to the latest release of Example.
+up install   # Builds and installs Example into GOBIN.
+up test      # Runs all unit tests and reports output to the screen.
+```
+
+After installation, either setup your environment variables or everytime you open a new terminal run:
+```
+source source.me.sh
+```
+...to set your environment variables. This line is included in the 'up' script.
 
 For more assistance, see:
 ```
