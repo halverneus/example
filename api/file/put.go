@@ -10,7 +10,8 @@ import (
 // PutRequest is a file stream. File is saved at a path specified in the URL.
 // For example, to save a file as "my/folder/file.json", one would set the
 // "Content-Type" header to "application/json" and stream the file to the
-// following endpoint: "/api/file/my/folder/file.json". Credentials required.
+// following endpoint: "/api/latest/file/my/folder/file.json". Credentials
+// required.
 
 // PutResponse returns nothing.
 type PutResponse struct{}

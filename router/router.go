@@ -28,12 +28,22 @@ func Run() (err error) {
 
 	// Setup HTTP routes.
 	router := httprouter.New()
-	router.DELETE("/api/file/*filepath", web.Wrap(authenticate.User(file.DELETE)))
-	router.GET("/api/file/*filepath", web.Wrap(authenticate.User(file.GET)))
-	router.PUT("/api/file/*filepath", web.Wrap(authenticate.User(file.PUT)))
-	router.DELETE("/api/user", web.Wrap(authenticate.User(user.DELETE)))
-	router.POST("/api/user", web.Wrap(authenticate.User(user.POST)))
-	router.PUT("/api/user", web.Wrap(authenticate.User(user.PUT)))
+
+	// V1 of the API.
+	router.DELETE("/api/v1/file/*filepath", web.Wrap(authenticate.User(file.DELETE)))
+	router.GET("/api/v1/file/*filepath", web.Wrap(authenticate.User(file.GET)))
+	router.PUT("/api/v1/file/*filepath", web.Wrap(authenticate.User(file.PUT)))
+	router.DELETE("/api/v1/user", web.Wrap(authenticate.User(user.DELETE)))
+	router.POST("/api/v1/user", web.Wrap(authenticate.User(user.POST)))
+	router.PUT("/api/v1/user", web.Wrap(authenticate.User(user.PUT)))
+
+	// Latest version of the API.
+	router.DELETE("/api/latest/file/*filepath", web.Wrap(authenticate.User(file.DELETE)))
+	router.GET("/api/latest/file/*filepath", web.Wrap(authenticate.User(file.GET)))
+	router.PUT("/api/latest/file/*filepath", web.Wrap(authenticate.User(file.PUT)))
+	router.DELETE("/api/latest/user", web.Wrap(authenticate.User(user.DELETE)))
+	router.POST("/api/latest/user", web.Wrap(authenticate.User(user.POST)))
+	router.PUT("/api/latest/user", web.Wrap(authenticate.User(user.PUT)))
 
 	// Setup HTTP server.
 	server := &http.Server{Addr: config.Get.Example.Bind, Handler: router}

@@ -9,8 +9,8 @@ import (
 
 // GetRequest is a file stream. File is loaded from a path specified in the URL.
 // For example, to download a file called "my/folder/file.json", one would
-// stream the file from the following endpoint: "/api/file/my/folder/file.json".
-// Credentials required.
+// stream the file from the following endpoint:
+// "/api/latest/file/my/folder/file.json". Credentials required.
 
 // GET file from storage.
 func GET(ctx *web.Context) {

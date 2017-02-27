@@ -47,45 +47,51 @@ Adding more users:
 ```
 curl --user yourname:yourpassword -X PUT \
     --data '{"username":"othername","password":"otherpassword"}' \
-    http://127.0.0.1:8080/api/user
+    http://127.0.0.1:8080/api/latest/user
+# http://127.0.0.1:8080/api/v1/user is equally valid.
 ```
 
 Update your password:
 ```
 curl --user yourname:yourpassword -X POST \
     --data '{"password":"yournewpassword"}' \
-    http://127.0.0.1:8080/api/user
+    http://127.0.0.1:8080/api/latest/user
+# http://127.0.0.1:8080/api/v1/user is equally valid.
 ```
 
 Delete another user:
 ```
 curl --user yourname:yourpassword -X DELETE \
     --data '{"username":"othername"}' \
-    http://127.0.0.1:8080/api/user
+    http://127.0.0.1:8080/api/latest/user
+# http://127.0.0.1:8080/api/v1/user is equally valid.
 ```
 
 Uploading a file:
 ```
 curl --user yourname:yourpassword --upload-file my.pdf \
     -H "Content-Type: application/pdf" \
-    http://127.0.0.1:8080/api/file/random/folders/your.pdf
+    http://127.0.0.1:8080/api/latest/file/random/folders/your.pdf
+# http://127.0.0.1:8080/api/v1/file/random/folders/your.pdf is equally valid
 ```
 
 Downloading a file:
 ```
 curl --user yourname:yourpassword \
-    http://127.0.0.1:8080/api/file/random/folders/your.pdf > their.pdf
+    http://127.0.0.1:8080/api/latest/file/random/folders/your.pdf > their.pdf
+# http://127.0.0.1:8080/api/v1/file/random/folders/your.pdf > their.pdf is equally valid
 ```
 
 Deleting a file:
 ```
 curl --user yourname:yourpassword -X "DELETE" \
-    http://127.0.0.1:8080/api/file/random/folders/your.pdf
+    http://127.0.0.1:8080/api/latest/file/random/folders/your.pdf
+# http://127.0.0.1:8080/api/v1/file/random/folders/your.pdf is equally valid
 ```
 
 ## Code layout
 Quick code layout explanation:
-* api -> Everything in this folder relates to the URL address. For example, api/file/get.go refers to a HTTP GET request to http(s)://{host}/api/file/*
+* api -> Everything in this folder relates to the URL address. For example, api/file/get.go refers to a HTTP GET request to http(s)://{host}/api/latest/file/* or http(s)://{host}/api/v1/file/*
 * bin -> Contains the main.go executable.
 * cli -> Command-line interface.
 * config -> Configuration settings for running the application.
