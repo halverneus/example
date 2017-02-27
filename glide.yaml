@@ -1,0 +1,6 @@
+package: github.com/halverneus/example
+import:
+- package: golang.org/x/crypto
+  subpackages:
+  - scrypt
+- package: gopkg.in/yaml.v2

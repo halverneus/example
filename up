@@ -1,0 +1,125 @@
+#!/bin/bash
+
+# Exit on any failure.
+set -e
+
+#######################################
+##
+##      Verify and complete the following variables before
+##      running this script.
+##
+#######################################
+
+# Go variables for installation location and project directory.
+CWD=$(pwd)
+GOPATH=$CWD/go
+GOBIN=$CWD/go/bin
+GOROOT=$CWD/go1.8
+PATH=$PATH:$GOROOT/bin:$GOBIN
+
+# URL containing tools. Leave off 'http://' and 'https://'.
+GOURL=storage.googleapis.com/golang/go1.8.linux-amd64.tar.gz
+GLIDEURL=ppa.launchpad.net/masterminds/glide/ubuntu/pool/main/g/glide/glide_0.12.3~xenial.tar.gz
+EXAMPLEURL=github.com/halverneus/example
+
+# Installation configuration.
+CONFIGFILE=$CWD/example/etc/example/example.yaml
+STORAGEDIR=$CWD/example/var/lib/example/storage/
+DATABASE=$CWD/example/var/lib/example/example.db
+BIND=":8080"
+# BIND="127.0.0.1:8080"
+VERSION=1.0.0
+
+
+setup() {
+
+    # Confirm directory is empty.
+    if [ "$(ls -A $CWD)" ]; then
+        echo "This directory is not empty. Use an empty directory."
+        exit 1
+    fi
+
+# Creating a file for sourcing.
+cat <<EOF > source.me.sh
+export GOPATH=$CWD/go
+export GOBIN=$CWD/go/bin
+export GOROOT=$CWD/go1.8/go
+export PATH=$PATH:$GOROOT/bin:$GOBIN
+EOF
+
+    # Create file system layout.
+    mkdir -p $(dirname "${CONFIGFILE}")
+    mkdir -p $STORAGEDIR
+    mkdir -p $(dirname "${DATABASE}")
+    mkdir -p $GOPATH/bin
+    mkdir -p $GOPATH/pkg
+    mkdir -p $GOPATH/src
+    mkdir -p $GOROOT
+
+    # Create configuration file.
+cat <<EOF > $CONFIGFILE
+database:
+  filename: $DATABASE
+storage:
+  folder: $STORAGEDIR
+example:
+  bind: $BIND
+EOF
+
+    # Download Go 1.8.
+    gofile=$(basename "${GOURL}")
+    wget http://$GOURL
+    tar -C $GOROOT/.. -xzf $gofile
+    rm $gofile
+
+    # Download Glide.
+    glidefile=$(basename "${GLIDEURL}")
+    wget http://$GLIDEURL
+    tar -C $GOBIN -xzf $glidefile xenial/debian/amd64/glide
+
+    # Loading source file to access 'go'.
+    source source.me.sh
+
+    # Download Example
+    go get -u $EXAMPLEURL/bin/example
+
+    echo "Installation is complete. The 'example' executable is in your GOBIN directory. Type 'source source.me.sh' to put GOBIN in your path."
+}
+
+case $1 in
+    setup)
+        setup
+        ;;
+    update)
+        source source.me.sh
+        go get -u $EXAMPLEURL/example/bin/example
+        cd $GOPATH/src/$EXAMPLEURL
+        glide install
+        go install -ldflags "-X $EXAMPLEURL/cli.Version=$VERSION" bin/example
+        ;;
+    install)
+        source source.me.sh
+        go install -ldflags "-X $EXAMPLEURL/cli.Version=$VERSION" bin/example
+        ;;
+    *)
+        echo "Usage: up {setup|update|install}"
+        echo ""
+        echo "  setup: Create an empty directory beside this script, cd into the"
+        echo "    directory and execute '../up setup'. This will install Go, all"
+        echo "    Example dependencies and Example."
+        echo ""
+        echo "  update: This will pull down the latest code, update dependencies"
+        echo "    and reinstall Example with the latest code."
+        echo ""
+        echo "  install: This will reinstall the code with no changes."
+        echo ""
+        echo ""
+        echo "NOTE: All steps install into GOBIN."
+        echo ""
+        echo "NOTE: This script creates a file called 'source.me.sh' that is"
+        echo "      useful for letting you use Go from the command line. Just"
+        echo "      run 'source source.me.sh'."
+        echo ""
+        exit 1
+        ;;
+esac
