@@ -14,7 +14,7 @@ set -e
 CWD=$(pwd)
 GOPATH=$CWD/go
 GOBIN=$CWD/go/bin
-GOROOT=$CWD/go1.8
+GOROOT=$CWD/go1.8/go
 PATH=$PATH:$GOROOT/bin:$GOBIN
 
 # URL containing tools. Leave off 'http://' and 'https://'.
@@ -76,6 +76,9 @@ EOF
     glidefile=$(basename "${GLIDEURL}")
     wget http://$GLIDEURL
     tar -C $GOBIN -xzf $glidefile xenial/debian/amd64/glide
+    mv $GOBIN/xenial/debian/amd64/glide $GOBIN/glide
+    rm -rf $GOBIN/xenial
+    rm $glidefile
 
     # Loading source file to access 'go'.
     source source.me.sh
@@ -92,14 +95,14 @@ case $1 in
         ;;
     update)
         source source.me.sh
-        go get -u $EXAMPLEURL/example/bin/example
+        go get -u $EXAMPLEURL/bin/example
         cd $GOPATH/src/$EXAMPLEURL
-        glide install
-        go install -ldflags "-X $EXAMPLEURL/cli.Version=$VERSION" bin/example
+        glide up
+        go install -ldflags "-X $EXAMPLEURL/cli.Version=$VERSION" $EXAMPLEURL/bin/example
         ;;
     install)
         source source.me.sh
-        go install -ldflags "-X $EXAMPLEURL/cli.Version=$VERSION" bin/example
+        go install -ldflags "-X $EXAMPLEURL/cli.Version=$VERSION" $EXAMPLEURL/bin/example
         ;;
     *)
         echo "Usage: up {setup|update|install}"
