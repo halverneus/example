@@ -30,34 +30,41 @@ Adding a first user:
 ```
 example --config config.yaml user add yourname yourpassword
 ```
+
 Adding more users:
 ```
 curl --user yourname:yourpassword -X PUT \
     --data '{"username":"othername","password":"otherpassword"}' \
     http://127.0.0.1:8080/api/user
 ```
+
 Update your password:
+```
 curl --user yourname:yourpassword -X POST \
     --data '{"password":"yournewpassword"}' \
     http://127.0.0.1:8080/api/user
 ```
+
 Delete another user:
 ```
 curl --user yourname:yourpassword -X DELETE \
     --data '{"username":"othername"}' \
     http://127.0.0.1:8080/api/user
 ```
+
 Uploading a file:
 ```
 curl --user yourname:yourpassword --upload-file my.pdf \
     -H "Content-Type: application/pdf" \
     http://127.0.0.1:8080/api/file/random/folders/your.pdf
 ```
+
 Downloading a file:
 ```
 curl --user yourname:yourpassword \
     http://127.0.0.1:8080/api/file/random/folders/your.pdf > their.pdf
 ```
+
 Deleting a file:
 ```
 curl --user yourname:yourpassword -X "DELETE" \
