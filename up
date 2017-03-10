@@ -30,7 +30,7 @@ BIND=":8080"
 # BIND="127.0.0.1:8080"
 VERSION=1.0.0
 
-
+# setup a new environment from scratch.
 setup() {
 
     # Confirm directory is empty.
@@ -44,7 +44,7 @@ cat <<EOF > source.me.sh
 export GOPATH=$CWD/go
 export GOBIN=$CWD/go/bin
 export GOROOT=$CWD/go1.8/go
-export PATH=$PATH:$GOROOT/bin:$GOBIN
+export PATH=$GOROOT/bin:$GOBIN:$PATH
 EOF
 
     # Create file system layout.
@@ -85,6 +85,7 @@ EOF
 
     # Download Example
     go get -u $EXAMPLEURL/bin/example
+    go install -ldflags "-X $EXAMPLEURL/cli.Version=$VERSION" $EXAMPLEURL/bin/example
 
     echo "Installation is complete. The 'example' executable is in your GOBIN directory. Type 'source source.me.sh' to put GOBIN in your path."
 }
@@ -93,6 +94,39 @@ case $1 in
 
     setup)
         setup
+
+        # Ask for credentials for setting up a new user. 3 tries.
+        COUNT=0
+        while [[ -z $user ]] || [[ 8 -gt "${#pass1}" ]] || [ "$pass1" != "$pass2" ] || \
+              [[ "${#pass1}" -ne "${#pass2}" ]]
+        do
+          let COUNT+=1
+          case $COUNT in
+            1)
+              echo "Let's set up your first user. Please enter your user name."
+            ;;
+            2)
+              echo "Enter a password with at least 8 characters and a user name with at least one."
+            ;;
+            3)
+              echo "Last chance to enter a valid user name and password."
+            ;;
+            4)
+              echo "Failed to supply and appropriate user name and password."
+              exit 1
+            ;;
+          esac
+
+          read -p "Enter user name: " user
+          echo ""
+          read -s -p "Enter password: " pass1
+          echo ""
+          read -s -p "Re-enter password: " pass2
+          echo ""
+        done
+
+        example --config $CONFIGFILE init
+        example --config $CONFIGFILE user add $user $pass1
         ;;
 
     update)
@@ -107,12 +141,24 @@ case $1 in
         source source.me.sh
         go install -ldflags "-X $EXAMPLEURL/cli.Version=$VERSION" $EXAMPLEURL/bin/example
         ;;
+
+    run)
+        source source.me.sh
+        which example
+        example --config $CONFIGFILE run
+        ;;
+
     test)
         source source.me.sh
         cd $GOPATH/src/$EXAMPLEURL
         go test -cover $(glide novendor)
         ;;
-        
+
+    wipe)
+        find . ! -name 'up' -type f -exec rm -f {} +
+        find . ! -name 'up' -type d -exec rm -f {} +
+        ;;
+
     *)
         echo "Usage: up {setup|update|install|test}"
         echo ""
