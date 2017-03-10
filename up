@@ -15,7 +15,7 @@ CWD=$(pwd)
 GOPATH=$CWD/go
 GOBIN=$CWD/go/bin
 GOROOT=$CWD/go1.8/go
-PATH=$PATH:$GOROOT/bin:$GOBIN
+PATH=$GOROOT/bin:$GOBIN:$PATH
 
 # URL containing tools. Leave off 'http://' and 'https://'.
 GOURL=storage.googleapis.com/golang/go1.8.linux-amd64.tar.gz
@@ -28,7 +28,7 @@ STORAGEDIR=$CWD/example/var/lib/example/storage/
 DATABASE=$CWD/example/var/lib/example/example.db
 BIND=":8080"
 # BIND="127.0.0.1:8080"
-VERSION=0.3.0
+VERSION=0.4.0
 
 # setup a new environment from scratch.
 setup() {
@@ -169,7 +169,6 @@ case $1 in
 
     run) # Starts the server.
         source source.me.sh
-        which example
         example --config $CONFIGFILE run
         ;;
 
@@ -198,7 +197,8 @@ helpText="
       update: This will pull down the latest Example code, update dependencies
         and reinstall Example.
 
-      build: If any changes are made to the source code, this will build it.
+      build: If any changes are made to the source code, this will build it and
+        place it in the GOBIN directory.
 
       run: Starts the server.
 
