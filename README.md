@@ -17,10 +17,14 @@ go install -ldflags "-X github.com/halverneus/example/cli.Version=$VERSION" gith
 ```
 
 ### (Install) I do NOT have a Go development environment
-On an Ubuntu 16.04 machine with 'wget' installed ('sudo apt-get -y install wget') Run the following to install Example:
+On an Ubuntu 16.04 machine with 'wget' and 'git' installed ('sudo apt-get -y install wget git') run the following to install Example inside an empty folder:
 ```bash
+mkdir emptyfolder
+cd emptyfolder
 wget https://github.com/halverneus/example/raw/master/up && chmod +x up && ./up setup
 ```
+
+If the installation fails for any reason, remove the contents of the folder ('rm -rf *') before trying again.
 
 ## Configuration
 Example can use, either, environment variables or a YAML file configuration file to assign settings. This section is, again, divided between the Go developer and everyone else.
