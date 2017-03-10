@@ -33,18 +33,24 @@ VERSION=1.0.0
 # setup a new environment from scratch.
 setup() {
 
-    # Confirm directory is empty.
-    if [ "$(ls -A $CWD)" ]; then
-        echo "This directory is not empty. Use an empty directory."
-        exit 1
-    fi
+    # Confirm directory is empty except for this script.
+    for entry in $(ls -A1 $CWD); do
+        if [ "$entry" != "up" ]; then
+            printf 'Directory contains: %s\nDirectory must be empty except for "up".\n' "$entry"
+            exit 1
+        fi
+    done
+    echo "Empty"
 
-# Creating a file for sourcing.
+# Creating a file for sourcing. File is reentrant and can be called multiple times.
 cat <<EOF > source.me.sh
+# Reentrant source file for setting up environment variables.
 export GOPATH=$CWD/go
 export GOBIN=$CWD/go/bin
 export GOROOT=$CWD/go1.8/go
-export PATH=$GOROOT/bin:$GOBIN:$PATH
+if [[ "\$PATH" != *"$CWD/go1.8/go/bin:$CWD/go/bin"* ]]; then
+    export PATH=\$GOROOT/bin:\$GOBIN:\$PATH
+fi
 EOF
 
     # Create file system layout.
@@ -87,19 +93,39 @@ EOF
     go get -u $EXAMPLEURL/bin/example
     go install -ldflags "-X $EXAMPLEURL/cli.Version=$VERSION" $EXAMPLEURL/bin/example
 
-    echo "Installation is complete. The 'example' executable is in your GOBIN directory. Type 'source source.me.sh' to put GOBIN in your path."
+complete="
+
+===========================================================================
+    Installation is complete. The 'example' executable is in your GOBIN
+    directory. Type 'source source.me.sh' to put GOBIN in your PATH.
+
+    Next steps:
+      - Run 'up init' to set up the first user.
+      - Run 'up run' to execute the server.
+
+    WARNING: Do NOT run 'up setup' again without running 'up wipe'
+             first. Running 'up wipe' will remove all data.
+===========================================================================
+"
+    echo "$complete"
 }
 
 case $1 in
 
-    setup)
+    setup) # One-time installation script.
         setup
+        ;;
 
-        # Ask for credentials for setting up a new user. 3 tries.
+    init) # Create a new user. Reserved for additional setup.
+        source source.me.sh
+
+        # Ask for credentials for setting up a new user. User gets 3 tries.
         COUNT=0
         while [[ -z $user ]] || [[ 8 -gt "${#pass1}" ]] || [ "$pass1" != "$pass2" ] || \
               [[ "${#pass1}" -ne "${#pass2}" ]]
         do
+
+          # Tracking number of retries while displaying a message on each failure.
           let COUNT+=1
           case $COUNT in
             1)
@@ -117,19 +143,19 @@ case $1 in
             ;;
           esac
 
+          # Request credentials from user.
           read -p "Enter user name: " user
-          echo ""
           read -s -p "Enter password: " pass1
           echo ""
           read -s -p "Re-enter password: " pass2
           echo ""
         done
 
-        example --config $CONFIGFILE init
+        # Initialize configuration file and settings, then add user.
         example --config $CONFIGFILE user add $user $pass1
         ;;
 
-    update)
+    update) # Checks for updates to 'example' to dependencies.
         source source.me.sh
         go get -u $EXAMPLEURL/bin/example
         cd $GOPATH/src/$EXAMPLEURL
@@ -137,49 +163,66 @@ case $1 in
         go install -ldflags "-X $EXAMPLEURL/cli.Version=$VERSION" $EXAMPLEURL/bin/example
         ;;
 
-    install)
+    build) # Create a new build and places it in the GOBIN directory.
         source source.me.sh
         go install -ldflags "-X $EXAMPLEURL/cli.Version=$VERSION" $EXAMPLEURL/bin/example
         ;;
 
-    run)
+    run) # Starts the server.
         source source.me.sh
         which example
         example --config $CONFIGFILE run
         ;;
 
-    test)
+    test) # Run all unit tests.
         source source.me.sh
         cd $GOPATH/src/$EXAMPLEURL
         go test -cover $(glide novendor)
         ;;
 
-    wipe)
-        find . ! -name 'up' -type f -exec rm -f {} +
-        find . ! -name 'up' -type d -exec rm -f {} +
+    wipe) # Remove all files and folders except for this script.
+        find . ! -name 'up' -type f -exec rm -f {} + &> /dev/null
+        find . ! -name 'up' -type d -exec rm -rf {} + &> /dev/null
         ;;
 
-    *)
-        echo "Usage: up {setup|update|install|test}"
-        echo ""
-        echo "  setup: Create an empty directory beside this script, cd into the"
-        echo "    directory and execute '../up setup'. This will install Go, all"
-        echo "    Example dependencies and Example."
-        echo ""
-        echo "  update: This will pull down the latest code, update dependencies"
-        echo "    and reinstall Example with the latest code."
-        echo ""
-        echo "  install: This will reinstall the code with no changes."
-        echo ""
-        echo "  test: Performs all unit tests on the code."
-        echo ""
-        echo ""
-        echo "NOTE: All steps install into GOBIN."
-        echo ""
-        echo "NOTE: This script creates a file called 'source.me.sh' that is"
-        echo "      useful for letting you use Go from the command line. Just"
-        echo "      run 'source source.me.sh'."
-        echo ""
+    *) # Bad command or help. Printing help to the screen.
+
+helpText="
+    Usage: up { setup | init | update | build | run | test | wipe }
+
+      setup: Create an empty directory. It is okay to have this script in the
+        directory. cd into the directory and execute './up setup'. This will
+        install Go, all Example dependencies and Example.
+
+      init: Performs initial setup routines, including creating a new user.
+
+      update: This will pull down the latest Example code, update dependencies
+        and reinstall Example.
+
+      build: If any changes are made to the source code, this will build it.
+
+      run: Starts the server.
+
+      test: Performs all unit tests on the code.
+
+      wipe: Deletes all files except for the 'up' file.
+
+
+    NOTE: All steps install into GOBIN.
+
+    NOTE: This script creates a file called 'source.me.sh' that is
+          useful for letting you use Go from the command line. Just
+          run 'source source.me.sh' before running any 'go' commands.
+
+    FIRST TIME USER? Run these commands.
+         mkdir emptydir
+         cd emptydir
+         cp folder/with/up ./
+         ./up setup   # Downloads and installs everything in one directory.
+         ./up init    # Command will as for credentials to create a new user.
+         ./up run     # Ctrl+C to exit.
+"
+        echo "$helpText"
         exit 1
         ;;
 esac

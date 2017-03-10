@@ -14,8 +14,8 @@ import (
 func Configuration() (err error) {
 	// Verify configuration path is set.
 	if "" == config.ConfigPath {
-		msg := `configuration file not assigned; try "example init` +
-			` --config /desired/path/to/config.yaml"`
+		msg := `configuration file not assigned; try "example` +
+			` --config /desired/path/to/config.yaml init"`
 		err = errors.New(msg)
 		return
 	}

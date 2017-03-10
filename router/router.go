@@ -54,7 +54,7 @@ func Run() (err error) {
 
 	// Start HTTP server.
 	go func() {
-		log.Println("Server is running.")
+		log.Printf("Server is listening at %s.\n", config.Get.Example.Bind)
 		errChan <- server.ListenAndServe()
 		close(errChan)
 		database.Shutdown() // Start shutting down the database.
